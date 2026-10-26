@@ -58,6 +58,18 @@ npm run dev
 
 The Vite app runs on `http://localhost:5173`. Set `VITE_API_URL` in `frontend/.env` when the API is hosted elsewhere.
 
+## Deploy to Render
+
+The root `render.yaml` Blueprint configures the static frontend, Express API, and required AI recommendation service in Render's Singapore region. The services use Render's free instances by default; free web services can spin down after inactivity, so the first request after idle may take about a minute. For an always-on production app, choose paid plans for both web services.
+
+1. Create a MongoDB Atlas cluster and database user. Add the Render API service's outbound IP addresses to the Atlas network access list; avoid opening database access to all IP addresses.
+2. In Render, create a Blueprint from this GitHub repository and select the branch containing `render.yaml`.
+3. When prompted, enter the Atlas connection string as `MONGO_URI` for the API service. Render generates `JWT_SECRET`; keep it private.
+4. Deploy all three services. Render builds the frontend with the API URL and configures the API to call the AI service and allow requests from the deployed frontend.
+5. Wait for the API and AI health checks to pass, then open the frontend's `onrender.com` URL.
+
+Never commit MongoDB credentials or production secrets to the repository. If you use a custom frontend domain, update `CORS_ORIGINS` on the API service to that exact HTTPS origin.
+
 ## Environment variables
 
 | Variable | Service | Description |
@@ -67,6 +79,7 @@ The Vite app runs on `http://localhost:5173`. Set `VITE_API_URL` in `frontend/.e
 | `JWT_SECRET` | Backend | Secret used to sign access tokens |
 | `JWT_EXPIRES_IN` | Backend | JWT lifetime; defaults to `7d` |
 | `ML_SERVICE_URL` | Backend | Base URL for the required recommendation service |
+| `CORS_ORIGINS` | Backend | Comma-separated list of allowed frontend origins; unrestricted when unset for local development |
 | `VITE_API_URL` | Frontend | API base URL; defaults to `http://localhost:5000/api` |
 
 ## API endpoints
